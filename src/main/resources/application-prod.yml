@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://jessica-db-jessica-planner.e.aivencloud.com:21486/defaultdb
-    username: avnadmin
-    password: AVNS_WrN3TJDg2-5W49Yh6WF
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     hikari:
       maximum-pool-size: ${DATABASE_MAX_POOL_SIZE:10}
       minimum-idle: ${DATABASE_MIN_IDLE:2}
@@ -25,9 +25,9 @@ app:
     provider: ${APP_STORAGE_PROVIDER:GOOGLE_CLOUD_STORAGE}
     max-file-size: ${APP_STORAGE_MAX_FILE_SIZE:25MB}
     google-cloud:
-      bucket-name: ${GCP_STORAGE_BUCKET_NAME:dev-jessica-planner-attachments}
-      project-id: ${GCP_PROJECT_ID:jessica-planner}
-      key-prefix: ${GCP_STORAGE_KEY_PREFIX:attachments}
+      bucket-name: ${GCP_STORAGE_BUCKET_NAME:d}
+      project-id: ${GCP_PROJECT_ID:j}
+      key-prefix: ${GCP_STORAGE_KEY_PREFIX:a}
       public-base-url: ${GCP_STORAGE_PUBLIC_BASE_URL:}
 
 logging:

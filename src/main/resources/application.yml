@@ -9,9 +9,9 @@ spring:
       max-file-size: ${APP_STORAGE_MAX_FILE_SIZE:10MB}
       max-request-size: ${APP_STORAGE_MAX_FILE_SIZE:10MB}
   datasource:
-    url: jdbc:postgresql://jessica-db-jessica-planner.e.aivencloud.com:21486/defaultdb
-    username: avnadmin
-    password: AVNS_WrN3TJDg2-5W49Yh6WF
+    url: jdbc:postgresql://j
+    username: a
+    password: A
   jpa:
     hibernate:
       ddl-auto: validate
@@ -75,7 +75,7 @@ app:
       key-prefix: ${AWS_S3_KEY_PREFIX:agile-task-service}
       public-base-url: ${AWS_S3_PUBLIC_BASE_URL:}
     google-cloud:
-      bucket-name: ${GCP_STORAGE_BUCKET_NAME:dev-jessica-planner-attachments}
-      project-id: ${GCP_PROJECT_ID:jessica-planner}
-      key-prefix: ${GCP_STORAGE_KEY_PREFIX:attachments}
+      bucket-name: ${GCP_STORAGE_BUCKET_NAME:d}
+      project-id: ${GCP_PROJECT_ID:j}
+      key-prefix: ${GCP_STORAGE_KEY_PREFIX:a}
       public-base-url: ${GCP_STORAGE_PUBLIC_BASE_URL:}
