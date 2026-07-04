@@ -1,0 +1,13 @@
+# Simulated AWS S3 profile.
+# Activate with: SPRING_PROFILES_ACTIVE=aws-s3
+# Credentials should come from the AWS SDK default chain: environment variables,
+# workload identity, IAM role, or external secret manager. Do not hardcode them here.
+app:
+  storage:
+    provider: AWS_S3
+    max-file-size: ${APP_STORAGE_MAX_FILE_SIZE:10MB}
+    aws-s3:
+      bucket-name: ${AWS_S3_BUCKET_NAME:your-agile-task-service-bucket}
+      region: ${AWS_REGION:us-east-1}
+      key-prefix: ${AWS_S3_KEY_PREFIX:agile-task-service}
+      public-base-url: ${AWS_S3_PUBLIC_BASE_URL:https://cdn.example.com/agile-task-service}

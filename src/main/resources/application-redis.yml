@@ -1,0 +1,8 @@
+# Optional Redis cache profile.
+# Activate together with any storage profile if needed:
+# SPRING_PROFILES_ACTIVE=redis
+app:
+  cache:
+    provider: REDIS
+    key-prefix: ${APP_CACHE_KEY_PREFIX:agile-task-service}
+    default-ttl-seconds: ${APP_CACHE_DEFAULT_TTL_SECONDS:300}

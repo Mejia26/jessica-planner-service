@@ -1,0 +1,72 @@
+/*
+package com.guido.agiletaskservice.infrastructure.storage;
+
+import com.guido.agiletaskservice.application.port.ResourceStorageService;
+import com.guido.agiletaskservice.common.exception.BusinessRuleException;
+import com.guido.agiletaskservice.config.StorageProperties;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+import java.io.IOException;
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "app.storage", name = "provider", havingValue = "AWS_S3")
+public class AwsS3ResourceStorageService implements ResourceStorageService {
+
+    private final S3Client s3Client;
+    private final StorageProperties storageProperties;
+
+    @Override
+    public StoredResource store(String folder, MultipartFile file) {
+        validateFileSize(file);
+        String key = storageProperties.awsS3().keyPrefix() + "/" + folder + "/" + UUID.randomUUID() + "-" + file.getOriginalFilename();
+
+        try {
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(storageProperties.awsS3().bucketName())
+                    .key(key)
+                    .contentType(file.getContentType())
+                    .contentLength(file.getSize())
+                    .build();
+
+            s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            log.info("Stored file in AWS S3: bucket={}, key={}", storageProperties.awsS3().bucketName(), key);
+            return new StoredResource(key, buildPublicUrl(key), file.getContentType(), file.getSize());
+        } catch (IOException exception) {
+            throw new BusinessRuleException("Could not read uploaded file.");
+        }
+    }
+
+    @Override
+    public void delete(String storageKey) {
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(storageProperties.awsS3().bucketName())
+                .key(storageKey)
+                .build());
+        log.info("Deleted file from AWS S3: key={}", storageKey);
+    }
+
+    private void validateFileSize(MultipartFile file) {
+        if (file.getSize() > storageProperties.maxFileSize().toBytes()) {
+            throw new BusinessRuleException("File exceeds the configured maximum size.");
+        }
+    }
+
+    private String buildPublicUrl(String key) {
+        if (storageProperties.awsS3().publicBaseUrl() == null || storageProperties.awsS3().publicBaseUrl().isBlank()) {
+            return null;
+        }
+        return storageProperties.awsS3().publicBaseUrl().replaceAll("/$", "") + "/" + key;
+    }
+}
+*/

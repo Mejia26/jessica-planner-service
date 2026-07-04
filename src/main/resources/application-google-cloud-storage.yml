@@ -1,0 +1,13 @@
+# Google Cloud Storage profile.
+# Activate with: SPRING_PROFILES_ACTIVE=google-cloud-storage
+# Credentials should come from Application Default Credentials, workload identity,
+# or an external secret manager. Do not hardcode service account JSON here.
+app:
+  storage:
+    provider: GOOGLE_CLOUD_STORAGE
+    max-file-size: ${APP_STORAGE_MAX_FILE_SIZE:10MB}
+    google-cloud:
+      bucket-name: ${GCP_STORAGE_BUCKET_NAME:your-agile-task-service-bucket}
+      project-id: ${GCP_PROJECT_ID:your-gcp-project-id}
+      key-prefix: ${GCP_STORAGE_KEY_PREFIX:agile-task-service}
+      public-base-url: ${GCP_STORAGE_PUBLIC_BASE_URL:https://storage.googleapis.com/your-agile-task-service-bucket}

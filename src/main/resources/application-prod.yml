@@ -1,0 +1,36 @@
+server:
+  port: ${PORT:${SERVER_PORT:8080}}
+
+spring:
+  datasource:
+    url: jdbc:postgresql://jessica-db-jessica-planner.e.aivencloud.com:21486/defaultdb
+    username: avnadmin
+    password: AVNS_WrN3TJDg2-5W49Yh6WF
+    hikari:
+      maximum-pool-size: ${DATABASE_MAX_POOL_SIZE:10}
+      minimum-idle: ${DATABASE_MIN_IDLE:2}
+      connection-timeout: ${DATABASE_CONNECTION_TIMEOUT_MS:30000}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: false
+    locations: classpath:db/migration
+
+app:
+  cache:
+    provider: ${APP_CACHE_PROVIDER:NONE}
+  storage:
+    provider: ${APP_STORAGE_PROVIDER:GOOGLE_CLOUD_STORAGE}
+    max-file-size: ${APP_STORAGE_MAX_FILE_SIZE:25MB}
+    google-cloud:
+      bucket-name: ${GCP_STORAGE_BUCKET_NAME:dev-jessica-planner-attachments}
+      project-id: ${GCP_PROJECT_ID:jessica-planner}
+      key-prefix: ${GCP_STORAGE_KEY_PREFIX:attachments}
+      public-base-url: ${GCP_STORAGE_PUBLIC_BASE_URL:}
+
+logging:
+  level:
+    root: ${ROOT_LOG_LEVEL:INFO}
+    com.guido.agiletaskservice: ${APP_LOG_LEVEL:INFO}
