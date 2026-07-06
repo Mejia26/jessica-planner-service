@@ -25,8 +25,8 @@ app:
     provider: ${APP_STORAGE_PROVIDER:GOOGLE_CLOUD_STORAGE}
     max-file-size: ${APP_STORAGE_MAX_FILE_SIZE:25MB}
     google-cloud:
-      bucket-name: ${GCP_STORAGE_BUCKET_NAME:d}
-      project-id: ${GCP_PROJECT_ID:j}
+      bucket-name: ${GCP_STORAGE_BUCKET_NAME}
+      project-id: ${GCP_PROJECT_ID}
       key-prefix: ${GCP_STORAGE_KEY_PREFIX:a}
       public-base-url: ${GCP_STORAGE_PUBLIC_BASE_URL:}
 

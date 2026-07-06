@@ -1,6 +1,7 @@
 package com.guido.agiletaskservice.application.service;
 
 import com.guido.agiletaskservice.api.dto.WorkWeekDtos;
+import com.guido.agiletaskservice.common.exception.BusinessRuleException;
 import com.guido.agiletaskservice.common.exception.ResourceNotFoundException;
 import com.guido.agiletaskservice.domain.entity.WorkWeekMeetingEntity;
 import com.guido.agiletaskservice.domain.entity.WorkWeekMeetingParticipantEntity;
@@ -13,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +34,11 @@ public class WorkWeekService {
     @Transactional
     public WorkWeekMeetingEntity create(WorkWeekDtos.CreateMeetingRequest request, UUID createdByUserId) {
         WorkWeekMeetingEntity meeting = new WorkWeekMeetingEntity();
-        applyMeetingFields(meeting, request.meetingDate(), request.purpose(), request.description(), createdByUserId);
+        applyMeetingFields(meeting, request.meetingDate(), request.meetingTime(), request.timeZone(), request.purpose(), request.description(), createdByUserId);
         WorkWeekMeetingEntity savedMeeting = meetingRepository.save(meeting);
         replaceParticipants(savedMeeting, request.participants(), createdByUserId);
-        log.info("Created work-week meeting: meetingId={}, meetingDate={}, participantCount={}",
-                savedMeeting.getId(), savedMeeting.getMeetingDate(), request.participants().size());
+        log.info("Created work-week meeting: meetingId={}, meetingDate={}, meetingTime={}, timeZone={}, participantCount={}",
+                savedMeeting.getId(), savedMeeting.getMeetingDate(), savedMeeting.getMeetingTime(), savedMeeting.getTimeZone(), request.participants().size());
         return get(savedMeeting.getId());
     }
 
@@ -49,10 +52,11 @@ public class WorkWeekService {
     @Transactional
     public WorkWeekMeetingEntity update(UUID id, WorkWeekDtos.UpdateMeetingRequest request, UUID userId) {
         WorkWeekMeetingEntity meeting = get(id);
-        applyMeetingFields(meeting, request.meetingDate(), request.purpose(), request.description(), meeting.getCreatedByUserId());
+        applyMeetingFields(meeting, request.meetingDate(), request.meetingTime(), request.timeZone(), request.purpose(), request.description(), meeting.getCreatedByUserId());
         WorkWeekMeetingEntity savedMeeting = meetingRepository.save(meeting);
         replaceParticipants(savedMeeting, request.participants(), userId);
-        log.info("Updated work-week meeting: meetingId={}, meetingDate={}", id, savedMeeting.getMeetingDate());
+        log.info("Updated work-week meeting: meetingId={}, meetingDate={}, meetingTime={}, timeZone={}",
+                id, savedMeeting.getMeetingDate(), savedMeeting.getMeetingTime(), savedMeeting.getTimeZone());
         return get(id);
     }
 
@@ -74,7 +78,7 @@ public class WorkWeekService {
         LocalDate anchor = anchorDate == null ? LocalDate.now() : anchorDate;
         LocalDate weekStart = anchor.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate weekEnd = weekStart.plusDays(6);
-        List<WorkWeekMeetingEntity> meetings = meetingRepository.findByMeetingDateBetweenAndDeletedAtIsNullOrderByMeetingDateAscCreatedAtAsc(weekStart, weekEnd);
+        List<WorkWeekMeetingEntity> meetings = meetingRepository.findByMeetingDateBetweenAndDeletedAtIsNullOrderByMeetingDateAscMeetingTimeAscCreatedAtAsc(weekStart, weekEnd);
         Map<LocalDate, List<WorkWeekMeetingEntity>> byDate = meetings.stream().collect(Collectors.groupingBy(WorkWeekMeetingEntity::getMeetingDate));
         List<WorkWeekDtos.WorkWeekDayResponse> days = new ArrayList<>();
         for (int dayIndex = 0; dayIndex < 7; dayIndex++) {
@@ -101,6 +105,8 @@ public class WorkWeekService {
                 meeting.getId(),
                 meeting.getMeetingDate(),
                 meeting.getDayOfWeek(),
+                meeting.getMeetingTime(),
+                meeting.getTimeZone(),
                 meeting.getPurpose(),
                 meeting.getDescription(),
                 meeting.getCreatedByUserId(),
@@ -111,9 +117,19 @@ public class WorkWeekService {
         );
     }
 
-    private void applyMeetingFields(WorkWeekMeetingEntity meeting, LocalDate meetingDate, String purpose, String description, UUID createdByUserId) {
+    private void applyMeetingFields(
+            WorkWeekMeetingEntity meeting,
+            LocalDate meetingDate,
+            LocalTime meetingTime,
+            String timeZone,
+            String purpose,
+            String description,
+            UUID createdByUserId
+    ) {
         meeting.setMeetingDate(meetingDate);
         meeting.setDayOfWeek(meetingDate.getDayOfWeek());
+        meeting.setMeetingTime(meetingTime);
+        meeting.setTimeZone(normalizeTimeZone(timeZone));
         meeting.setPurpose(purpose.trim());
         meeting.setDescription(description);
         meeting.setCreatedByUserId(createdByUserId);
@@ -133,5 +149,19 @@ public class WorkWeekService {
             participant.setExternalReference(request.externalReference());
             participantRepository.save(participant);
         });
+    }
+
+    private String normalizeTimeZone(String rawTimeZone) {
+        String candidate = rawTimeZone == null ? "" : rawTimeZone.trim();
+        String normalized = switch (candidate.toUpperCase()) {
+            case "AST", "RD", "DO", "DOMINICAN_REPUBLIC" -> "America/Santo_Domingo";
+            default -> candidate;
+        };
+        try {
+            ZoneId.of(normalized);
+            return normalized;
+        } catch (RuntimeException exception) {
+            throw new BusinessRuleException("Invalid time zone. Use an IANA time-zone id such as America/Santo_Domingo.");
+        }
     }
 }

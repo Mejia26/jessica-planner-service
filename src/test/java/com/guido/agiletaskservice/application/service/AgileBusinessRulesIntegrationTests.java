@@ -2,11 +2,14 @@ package com.guido.agiletaskservice.application.service;
 
 import com.guido.agiletaskservice.api.dto.BoardDtos;
 import com.guido.agiletaskservice.api.dto.IssueDtos;
+import com.guido.agiletaskservice.api.dto.PlanPolicyDtos;
 import com.guido.agiletaskservice.api.dto.ProjectDtos;
 import com.guido.agiletaskservice.api.dto.SprintDtos;
 import com.guido.agiletaskservice.api.dto.WorkWeekDtos;
 import com.guido.agiletaskservice.common.exception.BusinessRuleException;
+import com.guido.agiletaskservice.domain.entity.ActionEntity;
 import com.guido.agiletaskservice.domain.entity.BoardEntity;
+import com.guido.agiletaskservice.domain.entity.FeatureEntity;
 import com.guido.agiletaskservice.domain.entity.IssueEntity;
 import com.guido.agiletaskservice.domain.entity.ProjectEntity;
 import com.guido.agiletaskservice.domain.entity.SprintEntity;
@@ -19,6 +22,8 @@ import com.guido.agiletaskservice.domain.enums.SprintCompletionDestination;
 import com.guido.agiletaskservice.domain.enums.SprintStatus;
 import com.guido.agiletaskservice.domain.enums.StatusCategory;
 import com.guido.agiletaskservice.domain.enums.WorkflowMode;
+import com.guido.agiletaskservice.domain.repository.ActionRepository;
+import com.guido.agiletaskservice.domain.repository.FeatureRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +31,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -54,6 +60,15 @@ class AgileBusinessRulesIntegrationTests {
 
     @Autowired
     private WorkWeekService workWeekService;
+
+    @Autowired
+    private PlanPolicyYamlService planPolicyYamlService;
+
+    @Autowired
+    private FeatureRepository featureRepository;
+
+    @Autowired
+    private ActionRepository actionRepository;
 
     @Test
     void kanbanWipRejectsStandardWorkAndAllowsExpedite() {
@@ -114,6 +129,8 @@ class AgileBusinessRulesIntegrationTests {
         WorkWeekDtos.MeetingResponse meeting = workWeekService.toResponse(workWeekService.create(
                 new WorkWeekDtos.CreateMeetingRequest(
                         monday,
+                        LocalTime.of(17, 0),
+                        "AST",
                         "Daily stand-up",
                         "Review blockers.",
                         List.of(
@@ -127,6 +144,8 @@ class AgileBusinessRulesIntegrationTests {
         WorkWeekDtos.WorkWeekResponse week = workWeekService.getWeek(monday.plusDays(2));
 
         assertThat(meeting.participants()).hasSize(2);
+        assertThat(meeting.meetingTime()).isEqualTo(LocalTime.of(17, 0));
+        assertThat(meeting.timeZone()).isEqualTo("America/Santo_Domingo");
         assertThat(week.weekStart()).isEqualTo(monday);
         assertThat(week.weekEnd()).isEqualTo(monday.plusDays(6));
         assertThat(week.days()).hasSize(7);
@@ -134,6 +153,49 @@ class AgileBusinessRulesIntegrationTests {
         assertThat(week.days().getFirst().meetings().getFirst().participants())
                 .extracting(WorkWeekDtos.MeetingParticipantResponse::displayName)
                 .containsExactly("Harriet White", "External Camera Crew");
+    }
+
+    @Test
+    void planYamlIncludesOnlyEnabledActionsWithFeatureActionDescription() {
+        FeatureEntity userManagement = createFeature("User Management", "um-global");
+        ActionEntity addRole = createAction(userManagement, "Add Role", "um-add-role");
+        ActionEntity deleteRole = createAction(userManagement, "Delete Role", "um-delete-role");
+
+        String yaml = planPolicyYamlService.generatePlansYaml(new PlanPolicyDtos.GeneratePlansYamlRequest(List.of(
+                new PlanPolicyDtos.PlanDefinitionRequest(
+                        UUID.fromString("770e8400-e29b-41d4-a716-446655440201"),
+                        "Starter Plan",
+                        List.of(
+                                new PlanPolicyDtos.PlanActionSelectionRequest(addRole.getId(), true),
+                                new PlanPolicyDtos.PlanActionSelectionRequest(deleteRole.getId(), false)
+                        )
+                )
+        )));
+
+        assertThat(yaml).contains("""
+                plans:
+                  plans:
+                    - planId: "770e8400-e29b-41d4-a716-446655440201"
+                      name: "Starter Plan"
+                      actions:
+                        - id: %s
+                          description: User Management - Add Role
+                """.formatted(addRole.getId()));
+        assertThat(yaml).doesNotContain(deleteRole.getId().toString());
+    }
+
+    @Test
+    void planPolicyMappingYamlListsFeatureThenItsActions() {
+        FeatureEntity complianceTracking = createFeature("Compliance Tracking", "ct-global");
+        ActionEntity auditCompliance = createAction(complianceTracking, "Audit Compliance", "ct-audit-compliance");
+
+        String yaml = planPolicyYamlService.generatePlanPolicyMappingYaml();
+
+        assertThat(yaml).contains("""
+                # Compliance Tracking
+                ct-global: %s
+                ct-audit-compliance: %s
+                """.formatted(complianceTracking.getUserPolicyId(), auditCompliance.getUserPolicyId()));
     }
 
     private ProjectEntity createProject(String key) {
@@ -175,5 +237,22 @@ class AgileBusinessRulesIntegrationTests {
                 null,
                 0
         );
+    }
+
+    private FeatureEntity createFeature(String name, String abbreviationKey) {
+        FeatureEntity feature = new FeatureEntity();
+        feature.setFeatureName(name);
+        feature.setAbbreviationKey(abbreviationKey);
+        feature.setUserPolicyId(UUID.randomUUID());
+        return featureRepository.save(feature);
+    }
+
+    private ActionEntity createAction(FeatureEntity feature, String name, String abbreviationKey) {
+        ActionEntity action = new ActionEntity();
+        action.setFeature(feature);
+        action.setActionName(name);
+        action.setAbbreviationKey(abbreviationKey);
+        action.setUserPolicyId(UUID.randomUUID());
+        return actionRepository.save(action);
     }
 }

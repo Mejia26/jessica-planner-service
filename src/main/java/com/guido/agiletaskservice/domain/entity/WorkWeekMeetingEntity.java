@@ -13,6 +13,7 @@ import lombok.Setter;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +33,12 @@ public class WorkWeekMeetingEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "day_of_week", nullable = false, length = 20)
     private DayOfWeek dayOfWeek;
+
+    @Column(name = "meeting_time", nullable = false)
+    private LocalTime meetingTime;
+
+    @Column(name = "time_zone", nullable = false, length = 80)
+    private String timeZone;
 
     @Column(nullable = false, length = 220)
     private String purpose;

@@ -59,12 +59,15 @@ public class WorkWeekController {
             description = "Creates a meeting item for a specific date. Participants are free-form names and can include people outside the system.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = @ExampleObject(value = """
                     {
-                      "meetingDate": "2026-07-06",
-                      "purpose": "Daily stand-up",
-                      "description": "Review blockers and deployment readiness.",
+                      "meetingDate": "2026-04-06",
+                      "meetingTime": "17:00",
+                      "timeZone": "America/Santo_Domingo",
+                      "purpose": "Product planning session",
+                      "description": "Review the SaaS plan configuration workflow and agree on ownership.",
                       "participants": [
-                        {"displayName": "Harriet White", "roleLabel": "Lead"},
-                        {"displayName": "External Camera Crew", "roleLabel": "Vendor", "externalReference": "studio-crew"}
+                        {"displayName": "Lucas", "roleLabel": "Backend"},
+                        {"displayName": "Mateo", "roleLabel": "Frontend"},
+                        {"displayName": "Marcos", "roleLabel": "QA"}
                       ]
                     }
                     """)))

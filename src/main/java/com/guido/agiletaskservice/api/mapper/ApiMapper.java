@@ -1,15 +1,19 @@
 package com.guido.agiletaskservice.api.mapper;
 
+import com.guido.agiletaskservice.api.dto.ActionDTO;
 import com.guido.agiletaskservice.api.dto.BoardDtos;
 import com.guido.agiletaskservice.api.dto.CalendarDtos;
+import com.guido.agiletaskservice.api.dto.FeatureDTO;
 import com.guido.agiletaskservice.api.dto.IssueDtos;
 import com.guido.agiletaskservice.api.dto.ProjectDtos;
 import com.guido.agiletaskservice.api.dto.ProjectOptionDtos;
 import com.guido.agiletaskservice.api.dto.SprintDtos;
+import com.guido.agiletaskservice.domain.entity.ActionEntity;
 import com.guido.agiletaskservice.domain.entity.BoardColumnEntity;
 import com.guido.agiletaskservice.domain.entity.BoardEntity;
 import com.guido.agiletaskservice.domain.entity.CalendarCategoryEntity;
 import com.guido.agiletaskservice.domain.entity.CalendarEventEntity;
+import com.guido.agiletaskservice.domain.entity.FeatureEntity;
 import com.guido.agiletaskservice.domain.entity.IssueAttachmentEntity;
 import com.guido.agiletaskservice.domain.entity.IssueCommentEntity;
 import com.guido.agiletaskservice.domain.entity.IssueEntity;
@@ -195,5 +199,27 @@ public final class ApiMapper {
                 category.getUpdatedAt(),
                 category.getDeletedAt()
         );
+    }
+    
+    public static FeatureDTO fromFeatureEntityToDTO(FeatureEntity entity) {
+    	return FeatureDTO.builder()
+    			.id(entity.getId())
+    			.description(entity.getDescription())
+    			.featureName(entity.getFeatureName())
+    			.userPolicyId(entity.getUserPolicyId())
+    			.abbreviationKey(entity.getAbbreviationKey())
+    			.build();
+    }
+    
+    
+    public static ActionDTO fromActionEntityToDTO(ActionEntity entity) {
+    	return ActionDTO.builder()
+    			.description(entity.getDescription())
+    			.id(entity.getId())
+    			.actionName(entity.getActionName())
+    			.userPolicyId(entity.getUserPolicyId())
+    			.featureId(entity.getFeature().getId())
+    			.abbreviationKey(entity.getAbbreviationKey())
+    			.build();
     }
 }

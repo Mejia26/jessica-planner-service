@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +42,15 @@ public final class WorkWeekDtos {
             @Schema(description = "Specific meeting date. The backend derives dayOfWeek from this date.", example = "2026-07-06")
             LocalDate meetingDate,
 
+            @NotNull
+            @Schema(description = "Local meeting time for the provided time zone.", example = "17:00")
+            LocalTime meetingTime,
+
+            @NotBlank
+            @Size(max = 80)
+            @Schema(description = "IANA time-zone id used to interpret meetingTime. AST and RD are accepted and normalized to America/Santo_Domingo.", example = "America/Santo_Domingo")
+            String timeZone,
+
             @NotBlank
             @Size(max = 220)
             @Schema(description = "Short reason for the meeting.", example = "Daily stand-up and release risk review")
@@ -60,6 +70,8 @@ public final class WorkWeekDtos {
     @Schema(description = "Payload used to update a work-week meeting item.")
     public record UpdateMeetingRequest(
             @NotNull LocalDate meetingDate,
+            @NotNull LocalTime meetingTime,
+            @NotBlank @Size(max = 80) String timeZone,
             @NotBlank @Size(max = 220) String purpose,
             @Size(max = 2000) String description,
             @NotEmpty @Valid List<MeetingParticipantRequest> participants
@@ -80,6 +92,8 @@ public final class WorkWeekDtos {
             UUID id,
             LocalDate meetingDate,
             DayOfWeek dayOfWeek,
+            LocalTime meetingTime,
+            String timeZone,
             String purpose,
             String description,
             UUID createdByUserId,

@@ -9,5 +9,5 @@ import java.util.UUID;
 
 public interface WorkWeekMeetingRepository extends JpaRepository<WorkWeekMeetingEntity, UUID> {
 
-    List<WorkWeekMeetingEntity> findByMeetingDateBetweenAndDeletedAtIsNullOrderByMeetingDateAscCreatedAtAsc(LocalDate startDate, LocalDate endDate);
+    List<WorkWeekMeetingEntity> findByMeetingDateBetweenAndDeletedAtIsNullOrderByMeetingDateAscMeetingTimeAscCreatedAtAsc(LocalDate startDate, LocalDate endDate);
 }
