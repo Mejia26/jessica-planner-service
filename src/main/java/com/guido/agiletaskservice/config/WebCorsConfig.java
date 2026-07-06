@@ -15,8 +15,7 @@ public class WebCorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                		.allowedOrigins("https://jessica-planner-ui.onrender.com")
-                        .allowedOrigins("http://localhost:5174")
+                		.allowedOrigins("https://jessica-planner-ui.onrender.com","http://localhost:5174")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                         .allowedHeaders("*")
                         .exposedHeaders(
